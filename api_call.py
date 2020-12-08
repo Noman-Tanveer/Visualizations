@@ -1,5 +1,6 @@
 
 import requests
+import re
 
 url = "https://api.github.com/search/repositories?q=language:python&sort=stars"
 r = requests.get(url)
@@ -91,5 +92,42 @@ chart = pygal.Bar(my_config, style=my_style)
 chart.title = 'Most-Starred Python Projects on GitHub'
 chart.x_labels = names
 
-chart.add('', plot_dict)
-chart.render_to_file('python_repos_description_tooltips.svg')
+chart.add('', plot_dicts)
+#chart.render_to_file('python_repos_description_tooltips.svg')
+
+
+repo_dicts = response_dict['items']
+#print("Number of items:", len(repo_dicts))
+names, plot_dicts = [], []
+for repo_dict in repo_dicts:
+    names.append(repo_dict['name'])
+    plot_dict = {
+        'value': repo_dict['stargazers_count'],
+        'label': repo_dict['description'],
+        'xlink': repo_dict['html_url'],
+    }
+    plot_dicts.append(plot_dict)
+
+my_style = LS('#333366', base_style=LCS)
+    # Make visualization.
+my_config = pygal.Config()
+my_config.x_label_rotation = 45
+chart = pygal.Bar(my_config, style=my_style)
+
+my_style = LS('#333366', base_style=LCS)
+chart.title = 'Most-Starred Python Projects on GitHub'
+chart.x_labels = names
+
+    # preprocess labels here
+
+
+def f(e):
+    if e['label'] is None:
+        e['label'] = ""
+    return e
+
+
+plot_dicts = list(map(f, plot_dicts))
+print(plot_dicts)
+chart.add('', plot_dicts)
+chart.render_to_file('python_repos_desc.svg')
